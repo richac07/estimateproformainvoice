@@ -1,0 +1,25 @@
+{
+  "name": "estimateproformainvoice",
+  "version": "3.0.1",
+  "description": "\"This is a package to generate Proforma Invoice\"",
+  "main": "index.html",
+  "files": [
+    "index.html",
+    "styles.css",
+    "script.js",
+    "data.xlsx"
+  ],
+  "keywords": [
+    "html",
+    "css",
+    "javascript",
+    "excel",
+    "npm-package"
+  ],
+  "scripts": {
+    "start": "npx http-server"
+  },
+  "author": "Richa Chamoli",
+  "license": "MIT"
+  
+}

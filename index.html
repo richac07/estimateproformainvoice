@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Mobile App</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.26/jspdf.plugin.autotable.min.js"></script>
+
+
+</head>
+<body>
+  <div class="container">
+  <div class="header">
+  <h1 class="company-name">Smart Ohm</h1>
+  </div>
+  <h1>Estimation/ Proforma Invoice App</h1>
+
+  <div class="section">
+    <label for="customer-name">Customer Name</label>
+    <input type="text" id="customer-name" name="Enter the customer Name" placeholder="Enter Customer Name" required />
+    <label for="phone-number">Phone Number</label>
+    <input type="text" id="phone-number" name="Enter the Phone Number" placeholder="Enter the Phone Number" required />
+    <label for="email">Customer EmailID</label>
+    <input type="text" id="email" name="Enter the customer EmailID" placeholder="Enter the customer EmailID" required />
+  </div>
+
+  <div class="section">
+    <label for="cutomer-address">Customer Address</label>
+    <input type="text" id="cutomer-address" name="Enter the Customer Address" placeholder="Enter the Customer Address" required />
+  </div>
+
+  <h2>Add Items to Proforma Invoice</h2>
+
+  <div class="section">
+    <h3>Select Category</h3>
+  <select id="category-dropdown">
+    <option value="">Select Category</option>
+  </select>
+  </div>
+
+  <div class="section">
+    <h3>Select Subcategory</h3>
+  <select id="subcategory-dropdown">
+    <option value="">Select Subcategory</option>
+  </select>
+  </div>
+
+  <div class="section">
+    <h3>Select Sub-Subcategory</h3>
+  <select id="subsubcategory-dropdown">
+    <option value="">Select Subsubcategory</option>
+  </select>
+  </div>
+
+  <div class="section">
+    <label for="quantity">Quantity:</label>
+    <input type="number" id="quantity" min="1" value="1">
+  </div>
+
+  <div class="section">
+  <div id="radio-container">
+    <!-- Radio buttons will be dynamically added here -->
+  </div>
+  </div>
+
+  <div class="section">
+  <div id="socket-needed-container">
+    <label for="socket-quantity">Sockets :</label>
+    <input type="number" id="socket-quantity" min="0" value="0">
+  </div>
+ </div>
+
+ <div class="section">
+  <div id="rj45-needed-container">
+    <label for="rj45-quantity">RJ45 :</label>
+    <input type="number" id="rj45-quantity" min="0" value="0">
+  </div>
+ </div>
+  
+   <!-- Display Prices -->
+        <div class="section">
+            <h2>Price Details</h2>
+            <p><strong>Cost Price : Rs </strong><span id="cost-price">0.00</span></p>
+            <p><strong>Selling Price: Rs </strong><span id="selling-price">0.00</span></p>
+        </div>
+
+        <!-- Add to Cart Button -->
+        <div class="section">
+            <button id="add-to-cart-btn">Add to Cart</button>
+        </div>
+      
+
+
+        <!-- Cart Section -->
+        <div class="section" style="overflow-x: auto;">
+            <h2>Cart Details</h2>
+            <div id="cart"></div>
+
+           
+            <table id="cart-table">
+              <thead>
+                <tr>
+                  <th>Item Name</th>
+                  <th>Quantity</th>
+                  <th>Cost Price</th>
+                  <th>Selling Price</th>
+                  <th>Protocol</th> <!-- Protocol column -->
+                  <th>Socket</th> <!-- Socket Quantity column -->
+                  <th>RJ45</th> <!-- RJ45 Quantity column -->
+                  <th>Total CP</th>
+                  <th>Total Price</th>
+                  <th>Actions</th> <!-- Delete column -->
+                </tr>
+              </thead>
+              <tbody id="cart-body">
+                <!-- Cart items will be inserted here dynamically -->
+              </tbody>
+            </table>
+            </div>
+            
+            <div class="section">
+              <p>Total Amount : Rs <span id="total">0.00</span></p>
+            <p>Total CP : Rs <span id="totalCP">0.00</span></p>
+            
+            <label for="discount">Discount :</label>
+            <input type="number" id="discount" min="0" value="0">
+            <p> Profit : <span id="profit">0</span> </p>
+            <p> Final Amount After Discount : <span id="finalAmount">0</span> </p>
+            </div>
+            <div class="section">
+            <button id="generateInvoice">Generate Proforma Invoice</button>
+        </div>
+      <div class="section">
+        <button id="reset-btn">Create New Estimate</button>
+      </div>
+    </div>
+    <div id="custom-modal" class="modal">
+      <div class="modal-content">
+        <p>Do you want to create a new estimate?</p>
+        <button id="confirm-btn">Yes</button>
+        <button id="cancel-btn">No</button>
+      </div>
+    </div>
+    
+  <script src="./script.js"></script>
+</body>
+</html>
