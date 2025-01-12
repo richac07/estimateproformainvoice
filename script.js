@@ -372,6 +372,7 @@ function updateCartTotal() {
   let totalCost = 0;
   let totalSellingPrice = 0;
   let profitInHand =0;
+  let amountAfterDiscount =0;
 
   let discount = parseInt(document.getElementById("discount").value, 10);
 
@@ -380,11 +381,6 @@ function updateCartTotal() {
     if (row.classList.contains("notes-row")) {
       return; // Skip this iteration
     }
-    // const totalCostCell = row.cells[7].textContent.replace("Rs", "").trim();
-    // const totalSellCell = row.cells[8].textContent.replace("Rs", "").trim();
-
-    // totalCost += parseFloat(totalCostCell);
-    // totalSellingPrice += parseFloat(totalSellCell);
     if (row.cells.length > 8) {
       const totalCostCell = row.cells[7].textContent.replace("Rs", "").trim();
       const totalSellCell = row.cells[8].textContent.replace("Rs", "").trim();
@@ -398,12 +394,16 @@ function updateCartTotal() {
   });
 
   profitInHand = (((100 - discount)/100)*totalSellingPrice) - totalCost;
+  amountAfterDiscount = ((100 - discount)/100)*totalSellingPrice;
+
   console.log("Profit In Hand: ", profitInHand);
+  console.log("Profit In Hand: ", amountAfterDiscount);
 
   // Update the total amount and total cost price/selling price
   document.getElementById("total").textContent = totalSellingPrice.toFixed(2);
   document.getElementById("totalCP").textContent = totalCost.toFixed(2);
   document.getElementById("profit").textContent = profitInHand;
+  document.getElementById("finalAmount").textContent = amountAfterDiscount;
 }
 
 let profitValue= 0;
@@ -430,9 +430,9 @@ discountInput.addEventListener("input",updateProfit);
 // Reset all fields after adding to cart
 function resetFields() {
   // Reset dropdowns to default
-  document.getElementById("category-dropdown").value = "";
-  document.getElementById("subcategory-dropdown").innerHTML = "<option value=''>Select Subcategory</option>";
-  document.getElementById("subsubcategory-dropdown").innerHTML = "<option value=''>Select Sub-Subcategory</option>";
+  // document.getElementById("category-dropdown").value = "";
+  // document.getElementById("subcategory-dropdown").innerHTML = "<option value=''>Select Subcategory</option>";
+  // document.getElementById("subsubcategory-dropdown").innerHTML = "<option value=''>Select Sub-Subcategory</option>";
 
   // Reset the displayed prices
   document.getElementById("cost-price").textContent = "0.00";
