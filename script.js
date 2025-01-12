@@ -255,8 +255,7 @@ function addToCart(name, category, subCategory, price, tcp) {
 
   //Item Quantity
   const quantity = parseInt(document.getElementById("quantity").value, 10) || 1;
-  // baseSP= price * quantity;
-  // baseCP = tcp *quantity;
+ 
   //protocol value
   const protocol = selectedProtocol.value;
   const protocolCost = protocolPrices[protocol].costPrice;
@@ -381,15 +380,25 @@ function updateCartTotal() {
     if (row.classList.contains("notes-row")) {
       return; // Skip this iteration
     }
-    const totalCostCell = row.cells[7].textContent.replace("Rs", "").trim();
-    const totalSellCell = row.cells[8].textContent.replace("Rs", "").trim();
+    // const totalCostCell = row.cells[7].textContent.replace("Rs", "").trim();
+    // const totalSellCell = row.cells[8].textContent.replace("Rs", "").trim();
 
-    totalCost += parseFloat(totalCostCell);
-    totalSellingPrice += parseFloat(totalSellCell);
+    // totalCost += parseFloat(totalCostCell);
+    // totalSellingPrice += parseFloat(totalSellCell);
+    if (row.cells.length > 8) {
+      const totalCostCell = row.cells[7].textContent.replace("Rs", "").trim();
+      const totalSellCell = row.cells[8].textContent.replace("Rs", "").trim();
+  
+      totalCost += parseFloat(totalCostCell) || 0; // Safely parse the value
+      totalSellingPrice += parseFloat(totalSellCell) || 0;
+    } else {
+      console.warn("Row does not have enough cells:", row);
+    }
     
   });
 
   profitInHand = (((100 - discount)/100)*totalSellingPrice) - totalCost;
+  console.log("Profit In Hand: ", profitInHand);
 
   // Update the total amount and total cost price/selling price
   document.getElementById("total").textContent = totalSellingPrice.toFixed(2);
@@ -472,6 +481,9 @@ function resetPage() {
   // Reset the displayed prices
   document.getElementById("cost-price").textContent = "0.00";
   document.getElementById("selling-price").textContent = "0.00";
+  document.getElementById("socket-quantity").value = 0; 
+  document.getElementById("rj45-quantity").value = 0; 
+  document.getElementById("quantity").value = 1; 
 
   // Reset customer details
   document.getElementById("customer-name").value = ""; 
@@ -492,6 +504,10 @@ function resetPage() {
   totalCostPrice = 0;
   document.getElementById("total").textContent = "0.00";  // Reset total selling price
   document.getElementById("totalCP").textContent = "0.00"; // Reset total cost price
+  document.getElementById("discount").value = "0"; // Reset discount
+  document.getElementById("profit").textContent = "0.00"; // Reset profit
+  document.getElementById("finalAmount").textContent = "0.00"; // Reset final amount price
+
    
 }
 
@@ -606,13 +622,6 @@ document.getElementById("generateInvoice").addEventListener("click", function() 
   doc.text("Total Amount: ", 20, totalYPosition);
   doc.setFontSize(12);
   doc.text('Rs: ' +totalSellingPrice.toFixed(2), 105, totalYPosition, null, null, 'center'); // Display total in the center
-//
-//
-
-  // doc.setFontSize(14);
-  // doc.text(`Discount:  ${discountValue.toFixed(2)} %`, 14, doc.lastAutoTable.finalY + 20, null, null, 'center');
-  // doc.setFontSize(14);
-  // doc.text(`Final Amount After Discount: Rs ${finalAmountValue.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 30, null, null, 'center');
 
   doc.setFontSize(14);
   doc.text("Discount: ", 20, doc.lastAutoTable.finalY + 20);
