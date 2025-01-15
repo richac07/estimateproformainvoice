@@ -238,11 +238,11 @@ populateRadioButtons();
 // Protocol prices
 const protocolPrices = {
   WiFi: {
-     costPrice: 850,
+     costPrice: 1003,
      sellingPrice: 2000
   },
   ZigBee: {
-     costPrice: 1500,
+     costPrice: 1750,
      sellingPrice: 3500
   },
   NonIoT: {
