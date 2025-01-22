@@ -253,6 +253,7 @@ const protocolPrices = {
 
 // Add product to cart and update TCP
 function addToCart(name, category, subCategory, price, tcp) {
+  const tableBody = document.getElementById("cart-body");
   const cartDiv = document.getElementById("cart");
   const cartItem = document.createElement("div");
   let itemSP = 0;
@@ -305,10 +306,6 @@ function addToCart(name, category, subCategory, price, tcp) {
 
 
   const row = document.createElement("tr");
-  const notesRow = document.createElement("tr");
-  // Unique ID for Notes field
-  const rowId = `row-${Date.now()}`;
-  row.setAttribute("id", rowId);
   const prefixedName = `${category} - ${subCategory} - ${name}`;
 
   row.innerHTML = `
@@ -321,54 +318,29 @@ function addToCart(name, category, subCategory, price, tcp) {
    <td>${rj45Quantity}</td> <!-- RJ45 Quantity -->
    <td>Rs ${itemCP.toFixed(2)}</td>
    <td>Rs ${itemSP.toFixed(2)}</td>
+   <td><input type="text" class="notes-input" placeholder="Add notes here"></td>
    <td><button class="delete-btn">Delete</button></td> 
  `;
 
-  // rowNote.innerHTML = `<td>${notes}</td>`;
-  // Add Notes input field
-  notesRow.setAttribute("id", `${rowId}-notes`);
-  notesRow.innerHTML = `
-   <td colspan="9">
-     <label for="notes">Notes:</label>
-     <input type="text" class="notes-input" placeholder="Add your notes here" />
-   </td>
- `;
-
-
   // Append the row to the cart table body
-  document.getElementById("cart-body").appendChild(row);
-  document.getElementById("cart-body").appendChild(notesRow);
+  tableBody.appendChild(row);
 
   row.querySelector(".delete-btn").addEventListener("click", function () {
      // Remove the row from the table
-     deleteCartRow(rowId);
+     row.remove();
+     updateCartTotal();
 
   });
 
   // Update the total amount in the cart
   updateCartTotal();
 
-
 }
 
-function deleteCartRow(rowId) {
-  // Remove the main row
-  const row = document.getElementById(rowId);
-  if (row) {
-     row.remove();
-  }
-
-  // Remove the corresponding Notes row
-  const notesRow = document.getElementById(`${rowId}-notes`);
-  if (notesRow) {
-     notesRow.remove();
-  }
-
-  // Update totals
-  updateCartTotal();
-}
 
 function updateCartTotal() {
+  const tableBody = document.getElementById("cart-body");
+  const rows = tableBody.getElementsByTagName("tr");
   const cartRows = document.querySelectorAll("#cart-body tr");
   let totalAmount = 0;
   let totalCost = 0;
@@ -378,49 +350,103 @@ function updateCartTotal() {
 
   let discount = parseInt(document.getElementById("discount").value, 10);
 
-  cartRows.forEach(row => {
 
-     if (row.classList.contains("notes-row")) {
-        return; // Skip this iteration
-     }
-     if (row.cells.length > 8) {
-        const totalCostCell = row.cells[7].textContent.replace("Rs", "").trim();
-        const totalSellCell = row.cells[8].textContent.replace("Rs", "").trim();
+  let totalQuantity = 0;
+  let totalTcp = 0;
+  let totalPrice = 0;
+  let totalSocketQuantity =0;
+  let totalRJQuantity = 0;
+  let totalCP = 0;
+  let totalSP = 0;
 
-        totalCost += parseFloat(totalCostCell) || 0; // Safely parse the value
-        totalSellingPrice += parseFloat(totalSellCell) || 0;
-     } else {
-        console.warn("Row does not have enough cells:", row);
-     }
+  // Loop through the rows and calculate totals
+  Array.from(rows).forEach((row) => {
+    const cells = row.getElementsByTagName("td");
 
+    if (cells.length > 10) {
+      totalQuantity += parseFloat(cells[1].textContent) || 0;
+      totalSocketQuantity += parseFloat(cells[5].textContent) || 0;
+      totalRJQuantity += parseFloat(cells[6].textContent) || 0;
+      totalTcp += parseFloat(cells[2].textContent.replace("Rs", "").trim()) || 0;
+      totalPrice += parseFloat(cells[3].textContent.replace("Rs", "").trim()) || 0;
+      totalCP += parseFloat(cells[7].textContent.replace("Rs", "").trim()) || 0;
+      totalSP += parseFloat(cells[8].textContent.replace("Rs", "").trim()) || 0;
+    }
   });
 
-  profitInHand = (((100 - discount) / 100) * totalSellingPrice) - totalCost;
-  amountAfterDiscount = ((100 - discount) / 100) * totalSellingPrice;
+  console.log("totalQuantity ", totalQuantity);
+  console.log("totalSocketQuantity ", totalSocketQuantity);
+  console.log("totalRJQuantity ", totalRJQuantity);
+  console.log("totalTcp ", totalTcp);
+  console.log("totalPrice ", totalPrice);
+  console.log("totalCP: ", totalCP);
+  console.log("totalSP ", totalSP);
 
-  console.log("Profit In Hand: ", profitInHand);
-  console.log("Profit In Hand: ", amountAfterDiscount);
+  // Check if a total row already exists, and remove it if it does
+  const existingTotalRow = document.getElementById("total-row");
+  if (existingTotalRow) {
+    existingTotalRow.remove();
+  }
 
-  // Update the total amount and total cost price/selling price
-  document.getElementById("total").textContent = totalSellingPrice.toFixed(2);
-  document.getElementById("totalCP").textContent = totalCost.toFixed(2);
-  document.getElementById("profit").textContent = profitInHand;
-  document.getElementById("finalAmount").textContent = amountAfterDiscount;
-}
+  // Create and append the total row
+  const totalRow = document.createElement("tr");
+  totalRow.id = "total-row"; // Give it a unique ID for identification
+  totalRow.innerHTML = `
+    <td><strong>Total</strong></td>
+    <td><strong>${totalQuantity}</strong></td>
+    <td><strong>Rs ${totalTcp.toFixed(2)}</strong></td>
+    <td><strong>Rs ${totalPrice.toFixed(2)}</strong></td>
+    <td colspan="1"></td>
+    <td><strong>${totalSocketQuantity}</strong></td>
+     <td><strong>${totalRJQuantity}</strong></td>
+    <td><strong>Rs ${totalCP.toFixed(2)}</strong></td>
+    <td><strong>Rs ${totalSP.toFixed(2)}</strong></td>
+    <td></td>
+  `;
+  tableBody.appendChild(totalRow);
+
+profitInHand = (((100 - discount) / 100) * totalSP) - totalCP;
+amountAfterDiscount = ((100 - discount) / 100) * totalSP;
+
+console.log("Profit In Hand: ", profitInHand);
+console.log("Value After discount: ", amountAfterDiscount);
+
+// Update the total amount and total cost price/selling price
+document.getElementById("total").textContent = totalSP.toFixed(2);
+document.getElementById("totalCP").textContent = totalCP.toFixed(2);
+document.getElementById("profit").textContent = profitInHand;
+document.getElementById("finalAmount").textContent = amountAfterDiscount;
 
 let profitValue = 0;
 let newFinalAmount = 0;
 const discountInput = document.getElementById("discount");
+//const totalRow = document.getElementById("total-row");
+
+}
+
+
+
+
+let profitValue = 0;
+let newFinalAmount = 0;
+const discountInput = document.getElementById("discount");
+
+
+
 // Function to update the profit
 function updateProfit() {
 
-  discountValue = +discountInput.value;
-  profitValue = (((100 - discountValue) / 100) * totalSellingPrice) - totalCostPrice;
-  newFinalAmount = (((100 - discountValue) / 100) * totalSellingPrice);
-  console.log("Total PRofit Price:", profitValue);
+  discountValue = discountInput.value;
+  const tAmt = parseFloat(document.getElementById("total").textContent.replace("Rs", "").trim()) || 0;
+  const cAmt = parseFloat(document.getElementById("totalCP").textContent.replace("Rs", "").trim()) || 0;
+
+  profitValue = (((100 - discountValue) / 100) * tAmt) - cAmt;
+  newFinalAmount = (((100 - discountValue) / 100) * tAmt);
+  console.log("tAmt", tAmt);
+  console.log("cAmt", cAmt);
   console.log("discountValue:", discountValue);
-  console.log("totalSellingPrice:", totalSellingPrice);
-  console.log("totalCost:", totalCostPrice);
+  console.log("profitValue:", profitValue);
+  console.log("newFinalAmount:", newFinalAmount);
   // Update the profit display
   document.getElementById("profit").textContent = profitValue.toFixed(2); // Update the span with profit value
   document.getElementById("finalAmount").textContent = newFinalAmount.toFixed(2);

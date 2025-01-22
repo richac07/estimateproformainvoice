@@ -1,6 +1,6 @@
 {
   "name": "estimateproformainvoice",
-  "version": "5.0.2",
+  "version": "6.0.0",
   "description": "\"This is a package to generate Proforma Invoice\"",
   "main": "index.html",
   "files": [
