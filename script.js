@@ -609,15 +609,17 @@ document.getElementById("generateInvoice").addEventListener("click", function ()
   // Header fields for the PDF (matching the correct order)
   const headers = ["Item", "Quantity", "Price", "Protocol", "Socket", "RJ45", "Total", "Notes"];
 
-  // Get the table rows data excluding Cost Price, Total Cost, and Actions columns
+  //Get the table rows data excluding Cost Price, Total Cost, and Actions columns
   const rows = [];
   const tableRows = cartTable.querySelectorAll("tbody tr");
 
   tableRows.forEach(row => {
      const rowData = [];
      const cells = row.querySelectorAll("td");
+     const notesInput = cells[9].querySelector("input"); // Adjust index based on your table structure
+     const notesValue = notesInput ? notesInput.value.trim() : "";
 
-     if (cells.length > 1) {
+    //  if (cells.length > 1) {
         rowData.push(cells[0].textContent.trim()); // Column 1 - Item Name (index 0)
         rowData.push(cells[1].textContent.trim()); // Column 2 - Quantity (index 2)
         rowData.push(cells[3].textContent.trim()); // Column 4 - Price (index 3)
@@ -625,52 +627,68 @@ document.getElementById("generateInvoice").addEventListener("click", function ()
         rowData.push(cells[5].textContent.trim()); // Column 6 - Socket(index 5)
         rowData.push(cells[6].textContent.trim()); // Column 6 - RJ45(index 5)
         rowData.push(cells[8].textContent.trim()); // Column 6 - Total(index 5)
-        // Add the row data to the rows array
-        rowData.push("");
-     } else if (cells.length === 1) {
-        // If it's a notes row, add the note to the last row in the `rows` array
-        const noteInput = cells[0].querySelector("input");
-        if (noteInput && rows.length > 0) {
-           rows[rows.length - 1][7] = noteInput.value.trim(); // Add the note to the "Notes" column
-        }
-        rowData.push(noteInput);
-     }
+        //rowData.push(cells[9].textContent.trim()); // Column 6 - Total(index 5)
+        rowData.push(notesValue);
      rows.push(rowData);
   });
 
+
+
   // Add the table to the PDF
 
-  doc.autoTable({
-     head: [headers], // Only show required headers
-     body: rows, // Only the required data in the rows
-     startY: 80, // Position of the table in the PDF (adjusted below customer name)
-  });
+// Generate the table with improved styles
+doc.autoTable({
+  head: [headers], // Table headers
+  body: rows,      // Table data
+  startY: 80,      // Position of the table below the customer name
+  theme: 'grid',   // Use a grid theme for a professional look
+  headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 12 }, // Header styling
+  bodyStyles: { fontSize: 11 }, // Body text styling
+  alternateRowStyles: { fillColor: [245, 245, 245] }, // Alternating row colors
+  styles: { halign: 'center', valign: 'middle' }, // Center align text in cells
 
-  // Add the Total Amount section after the table
-  const totalYPosition = doc.lastAutoTable.finalY + 10; // Calculate the Y position for the Total Amount section
-  doc.setFontSize(14);
-  doc.text("Total Amount: ", 20, totalYPosition);
-  doc.setFontSize(12);
-  doc.text('Rs: ' + totalSellingPrice.toFixed(2), 105, totalYPosition, null, null, 'center'); // Display total in the center
+});
 
-  doc.setFontSize(14);
-  doc.text("Discount: ", 20, doc.lastAutoTable.finalY + 20);
-  doc.setFontSize(12);
-  doc.text(` ${discountValue.toFixed(2)} %`, 105, doc.lastAutoTable.finalY + 20, null, null, 'center');
+// Add some spacing below the table
+const totalYPosition = doc.lastAutoTable.finalY + 20;
 
+// Add the Total Amount section with styling
+doc.setFont("helvetica", "bold"); // Use bold font
+doc.setFontSize(14);
+doc.setTextColor(41, 128, 185); // Set a nice blue color
+doc.text("Summary", 14, totalYPosition); // Title for the section
 
-  doc.setFont("helvetica", "bold"); // Set font to bold
-  doc.setFontSize(14); // Set the font size
-  doc.text("Total Discounted Cost: ", 20, doc.lastAutoTable.finalY + 30);
-  doc.setFont("helvetica", "bold"); // Set font to bold
-  doc.setFontSize(14); // Set the font size
+// Total Amount
+doc.setFontSize(12);
+doc.setTextColor(0); // Reset to black
+doc.text("Total Amount:", 20, totalYPosition + 10);
+doc.setFont("helvetica", "normal");
+doc.text(`Rs ${totalSellingPrice.toFixed(2)}`, 105, totalYPosition + 10, null, null, 'right');
 
-  // Add the "Final Amount After Discount" text
-  doc.text(` Rs ${finalAmountValue.toFixed(2)}`, 105, doc.lastAutoTable.finalY + 30, null, null, 'center');
+// Discount
+doc.setFont("helvetica", "bold");
+doc.text("Discount:", 20, totalYPosition + 20);
+doc.setFont("helvetica", "normal");
+doc.text(`${discountValue.toFixed(2)}%`, 105, totalYPosition + 20, null, null, 'right');
 
+// Total Discounted Cost
+doc.setFont("helvetica", "bold");
+doc.text("Total Discounted Cost:", 20, totalYPosition + 30);
+doc.setFont("helvetica", "normal");
+doc.text(`Rs ${finalAmountValue.toFixed(2)}`, 105, totalYPosition + 30, null, null, 'right');
 
-  // Save the generated PDF as invoice.pdf  
-  doc.save('invoice.pdf');
+// Footer
+doc.setDrawColor(41, 128, 185); // Add a blue line
+doc.line(20, doc.internal.pageSize.height - 30, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 30); // Line across the bottom
+doc.setFontSize(10);
+doc.setFont("helvetica", "italic");
+doc.setTextColor(100);
+doc.text("Thank you for your business!", 20, doc.internal.pageSize.height - 20);
+doc.text("Contact us for any questions or concerns.", 20, doc.internal.pageSize.height - 15);
+
+// Save the PDF
+doc.save("invoice.pdf");
+
 });
 
 function adjustTableDimensions() {
