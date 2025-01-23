@@ -251,6 +251,7 @@ const protocolPrices = {
   } // NonIoT has no extra cost
 };
 
+
 // Add product to cart and update TCP
 function addToCart(name, category, subCategory, price, tcp) {
   const tableBody = document.getElementById("cart-body");
@@ -310,16 +311,21 @@ function addToCart(name, category, subCategory, price, tcp) {
 
   row.innerHTML = `
    <td>${prefixedName}</td>
-   <td>${quantity}</td>
-   <td>Rs ${tcp}</td>
-   <td>Rs ${price}</td>
-   <td>${protocol}</td> <!-- Protocol -->
-   <td>${socketQuantity}</td> <!-- Socket Quantity -->
-   <td>${rj45Quantity}</td> <!-- RJ45 Quantity -->
+   <td class="editable" data-field="quantity">${quantity}</td>
+   <td data-field="costPrice">Rs ${tcp}</td>
+   <td data-field="sellingPrice">Rs ${price}</td>
+   <td data-field="protocol">${protocol}</td> <!-- Protocol -->
+   <td class="editable" data-field="socketQuantity">${socketQuantity}</td> <!-- Socket Quantity -->
+   <td class="editable" data-field="rj45Quantity">${rj45Quantity}</td> <!-- RJ45 Quantity -->
    <td>Rs ${itemCP.toFixed(2)}</td>
    <td>Rs ${itemSP.toFixed(2)}</td>
    <td><input type="text" class="notes-input" placeholder="Add notes here"></td>
-   <td><button class="delete-btn">Delete</button></td> 
+   <td>
+      <button class="edit-btn" onclick="editRow(this)">Edit</button>
+   </td>
+   <td><button class="delete-btn" aria-label="Delete Row" title="Delete Row">
+       <i class="fas fa-trash-alt"></i> <!-- Trash Icon -->
+     </button></td>
  `;
 
   // Append the row to the cart table body
@@ -336,6 +342,80 @@ function addToCart(name, category, subCategory, price, tcp) {
   updateCartTotal();
 
 }
+
+function editRow(button) {
+  const row = button.closest("tr"); // Get the parent row
+  const editableFields = row.querySelectorAll(
+    ".editable[data-field='quantity'], .editable[data-field='socketQuantity'], .editable[data-field='rj45Quantity']"
+  );
+
+  if (button.textContent === "Edit") {
+    // Switch to Edit Mode
+    editableFields.forEach((field) => {
+      const currentValue = field.textContent.trim(); // Get current value
+      const input = document.createElement("input"); // Create input element
+      input.type = "number"; // Use number input for quantities
+      input.value = currentValue; // Set input value to current value
+      input.dataset.field = field.dataset.field; // Preserve field data
+      field.innerHTML = ""; // Clear the cell content
+      field.appendChild(input); // Insert the input into the cell
+    });
+
+    button.textContent = "Save"; // Change button text to "Save"
+  } else {
+    // Save Changes and Recalculate Totals
+    let newQuantity = 0;
+    let newSocketQuantity = 0;
+    let newRJ45Quantity = 0;
+
+    editableFields.forEach((field) => {
+      const input = field.querySelector("input"); // Get the input element
+      const newValue = parseFloat(input.value.trim()) || 0; // Parse input value
+      field.textContent = newValue; // Update the field with the new value
+
+      // Update variables based on the field being edited
+      if (field.dataset.field === "quantity") newQuantity = newValue;
+      if (field.dataset.field === "socketQuantity") newSocketQuantity = newValue;
+      if (field.dataset.field === "rj45Quantity") newRJ45Quantity = newValue;
+    });
+
+    // // Recalculate Total CP (TCP) and Total Selling Price (TSP) for the row
+    const unitCostPrice = parseFloat(row.querySelector("[data-field='costPrice']").textContent.replace("Rs", "").trim()) || 0;
+    const unitSellingPrice = parseFloat(row.querySelector("[data-field='sellingPrice']").textContent.replace("Rs", "").trim()) || 0;
+    const protocolSelected = row.querySelector("[data-field='protocol']").textContent;
+    const protocolCP = protocolPrices[protocolSelected].costPrice;
+    const protocolSP = protocolPrices[protocolSelected].sellingPrice;
+    const socketCP = socketCostPrice * newSocketQuantity;
+    const socketSP = socketSellingPrice * newRJ45Quantity;
+    const rj45CP = rj45CostPrice * newRJ45Quantity;
+    const rj45SP = rj45SellingPrice * newRJ45Quantity;
+
+
+    console.log("unitCostPrice", unitCostPrice);
+    console.log("unitSellingPrice", unitSellingPrice);
+    console.log("newQuantity", newQuantity);
+    console.log("socketCP", socketCP);
+    console.log("protocolCost", protocolCP);
+    console.log("rj45SP", rj45SP);
+
+
+  //   itemSP = (price + protocolSelling + socketTotalSelling + rj45TotalSelling) * quantity;
+  // itemCP = (tcp + protocolCost + socketTotalCost + rj45TotalCost) * quantity;
+
+    const newTCP = newQuantity * (unitCostPrice + protocolCP + socketCP +rj45CP ); // Total Cost Price
+    const newTSP = newQuantity * (unitSellingPrice + protocolSP +socketSP +rj45SP ); // Total Selling Price
+
+    // // Update TCP and TSP columns in the row
+    row.cells[7].textContent = `Rs ${newTCP.toFixed(2)}`; // Update TCP
+    row.cells[8].textContent = `Rs ${newTSP.toFixed(2)}`; // Update TSP
+
+    updateCartTotal(); // Update the overall cart totals
+    button.textContent = "Edit"; // Change button text back to "Edit"
+  }
+}
+
+
+
 
 
 function updateCartTotal() {
@@ -632,9 +712,7 @@ document.getElementById("generateInvoice").addEventListener("click", function ()
      rows.push(rowData);
   });
 
-
-
-  // Add the table to the PDF
+// Add the table to the PDF
 
 // Generate the table with improved styles
 doc.autoTable({

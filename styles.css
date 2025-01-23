@@ -189,6 +189,12 @@ table tfoot {
   margin-top: 15px;
 }
 
+
+
+.delete-btn:hover {
+  color: #c0392b; /* Darker red on hover */
+} 
+
 #generateInvoice, #reset-btn {
   background-color: #2196F3;
   margin-top: 20px;
@@ -380,9 +386,10 @@ h2 {
 }
 
 button {
-  margin: 10px;
-  padding: 12px 24px;
-  font-size: 16px;
+  display: block; 
+  margin: 5px auto; /* Center the button and reduce outer spacing */
+  padding: 10px 20px; /* Adjust padding for better fit */
+  font-size: 14px; 
   font-weight: bold;
   color: #ffffff;
   background-color: #007BFF; /* Professional blue */
@@ -390,6 +397,8 @@ button {
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  width: 100%;
+  box-sizing: border-box; 
 }
 
 button:hover {
@@ -404,6 +413,15 @@ button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
 }
+
+.editable input {
+  width: 90%; /* Ensure inputs fit within the cell */
+  padding: 2px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
 
 
 
