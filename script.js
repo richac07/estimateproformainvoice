@@ -253,6 +253,28 @@ const protocolPrices = {
 
 
 // Add product to cart and update TCP
+/**
+ * Adds an item to the shopping cart and updates the total cost and selling price.
+ *
+ * @param {string} name - The name of the item.
+ * @param {string} category - The category of the item.
+ * @param {string} subCategory - The sub-category of the item.
+ * @param {number} price - The selling price of the item.
+ * @param {number} tcp - The cost price of the item.
+ *
+ * @throws {Error} If no protocol is selected.
+ *
+ * @description
+ * This function calculates the total cost and selling price of an item based on its
+ * base price, protocol, socket quantity, and RJ45 quantity. It then appends the item
+ * to the cart table and updates the total amounts displayed on the page.
+ *
+ * The function also allows for editing and deleting rows in the cart table.
+ *
+ * @example
+ * // Example usage:
+ * addToCart("Router", "Networking", "Wireless", 5000, 3000);
+ */
 function addToCart(name, category, subCategory, price, tcp) {
   const tableBody = document.getElementById("cart-body");
   const cartDiv = document.getElementById("cart");
@@ -415,9 +437,30 @@ function editRow(button) {
 }
 
 
-
-
-
+/**
+ * Updates the cart total by calculating various totals such as quantity, cost price, selling price, 
+ * profit, and amount after discount. It dynamically updates the cart table with a total row and 
+ * updates the corresponding DOM elements with calculated values.
+ *
+ * @function
+ * @returns {void}
+ *
+ * @description
+ * This function performs the following tasks:
+ * - Loops through the rows of the cart table to calculate totals for quantities, prices, and profits.
+ * - Removes any existing total row in the cart table and appends a new one with updated totals.
+ * - Calculates the profit in hand and the amount after applying a discount.
+ * - Updates the DOM elements for total selling price, total cost price, profit, and final amount.
+ *
+ * @example
+ * // Assuming the cart table has rows with appropriate data and a discount input field:
+ * updateCartTotal();
+ *
+ * @requires
+ * - The cart table must have an ID of "cart-body".
+ * - The discount input field must have an ID of "discount".
+ * - The total, totalCP, profit, and finalAmount elements must exist in the DOM with their respective IDs.
+ */
 function updateCartTotal() {
   const tableBody = document.getElementById("cart-body");
   const rows = tableBody.getElementsByTagName("tr");
@@ -715,58 +758,70 @@ document.getElementById("generateInvoice").addEventListener("click", function ()
 // Add the table to the PDF
 
 // Generate the table with improved styles
+// 1. Draw the table
 doc.autoTable({
-  head: [headers], // Table headers
-  body: rows,      // Table data
-  startY: 80,      // Position of the table below the customer name
-  theme: 'grid',   // Use a grid theme for a professional look
-  headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 12 }, // Header styling
-  bodyStyles: { fontSize: 11 }, // Body text styling
-  alternateRowStyles: { fillColor: [245, 245, 245] }, // Alternating row colors
-  styles: { halign: 'center', valign: 'middle' }, // Center align text in cells
-
-});
-
-// Add some spacing below the table
-const totalYPosition = doc.lastAutoTable.finalY + 20;
-
-// Add the Total Amount section with styling
-doc.setFont("helvetica", "bold"); // Use bold font
-doc.setFontSize(14);
-doc.setTextColor(41, 128, 185); // Set a nice blue color
-doc.text("Summary", 14, totalYPosition); // Title for the section
-
-// Total Amount
-doc.setFontSize(12);
-doc.setTextColor(0); // Reset to black
-doc.text("Total Amount:", 20, totalYPosition + 10);
-doc.setFont("helvetica", "normal");
-doc.text(`Rs ${totalSellingPrice.toFixed(2)}`, 105, totalYPosition + 10, null, null, 'right');
-
-// Discount
-doc.setFont("helvetica", "bold");
-doc.text("Discount:", 20, totalYPosition + 20);
-doc.setFont("helvetica", "normal");
-doc.text(`${discountValue.toFixed(2)}%`, 105, totalYPosition + 20, null, null, 'right');
-
-// Total Discounted Cost
-doc.setFont("helvetica", "bold");
-doc.text("Total Discounted Cost:", 20, totalYPosition + 30);
-doc.setFont("helvetica", "normal");
-doc.text(`Rs ${finalAmountValue.toFixed(2)}`, 105, totalYPosition + 30, null, null, 'right');
-
-// Footer
-doc.setDrawColor(41, 128, 185); // Add a blue line
-doc.line(20, doc.internal.pageSize.height - 30, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 30); // Line across the bottom
-doc.setFontSize(10);
-doc.setFont("helvetica", "italic");
-doc.setTextColor(100);
-doc.text("Thank you for your business!", 20, doc.internal.pageSize.height - 20);
-doc.text("Contact us for any questions or concerns.", 20, doc.internal.pageSize.height - 15);
-
-// Save the PDF
-doc.save("invoice.pdf");
-
+   head: [headers],
+   body: rows,
+   startY: 80,
+   margin: { bottom: 40 },
+   theme: 'grid',
+   headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 12 },
+   bodyStyles: { fontSize: 11 },
+   alternateRowStyles: { fillColor: [245, 245, 245] },
+   styles: { halign: 'center', valign: 'middle' },
+   didDrawPage: function (data) {
+     // Footer on each page
+     const pageHeight = doc.internal.pageSize.height;
+     const margin = 20;
+ 
+     doc.setDrawColor(41, 128, 185);
+     doc.line(margin, pageHeight - 30, doc.internal.pageSize.width - margin, pageHeight - 30);
+     doc.setFontSize(10);
+     doc.setFont("helvetica", "italic");
+     doc.setTextColor(100);
+     doc.text("Thank you for your business!", margin, pageHeight - 20);
+     doc.text("Contact us for any questions or concerns.", margin, pageHeight - 15);
+   }
+ });
+ 
+ // 2. Get Y position after table
+ const tableEndY = doc.lastAutoTable.finalY;
+ const pageHeight = doc.internal.pageSize.height;
+ const margin = 20;
+ const summaryHeight = 50;
+ const spaceNeeded = summaryHeight + 40; // Summary + footer space
+ 
+ // 3. Add new page if not enough space
+ if (pageHeight - tableEndY < spaceNeeded) {
+   doc.addPage();
+ }
+ 
+ // 4. Set Y position for summary
+ const summaryY = (pageHeight - tableEndY < spaceNeeded) ? margin : tableEndY + 10;
+ 
+ // 5. Draw Summary
+ doc.setFont("helvetica", "bold");
+ doc.setFontSize(14);
+ doc.setTextColor(41, 128, 185);
+ doc.text("Summary", margin, summaryY);
+ doc.setFontSize(12);
+ doc.setTextColor(0);
+ doc.text("Total Amount:", margin + 6, summaryY + 10);
+ doc.setFont("helvetica", "normal");
+ doc.text(`Rs ${totalSellingPrice.toFixed(2)}`, doc.internal.pageSize.width - margin, summaryY + 10, null, null, 'right');
+ doc.setFont("helvetica", "bold");
+ doc.text("Discount:", margin + 6, summaryY + 20);
+ doc.setFont("helvetica", "normal");
+ doc.text(`${discountValue.toFixed(2)}%`, doc.internal.pageSize.width - margin, summaryY + 20, null, null, 'right');
+ 
+ doc.setFont("helvetica", "bold");
+ doc.text("Total Discounted Cost:", margin + 6, summaryY + 30);
+ doc.setFont("helvetica", "normal");
+ doc.text(`Rs ${finalAmountValue.toFixed(2)}`, doc.internal.pageSize.width - margin, summaryY + 30, null, null, 'right');
+ 
+ // 6. Done — now you can save
+ doc.save("invoice.pdf");
+ console.log("PDF generated successfully!");
 });
 
 function adjustTableDimensions() {
